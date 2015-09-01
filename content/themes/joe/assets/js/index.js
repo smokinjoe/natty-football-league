@@ -21,11 +21,20 @@
       if (src.match(/streamable/)) {
         handleStreamableMedia($this);
       }
-      else if (src.match(/.mv4/)) {
-        buildHTML5VideoWith($this);
+      else if (src.match(/mp4/)) {
+        handleVidFile($this);
+      }
+      else if (src.match(/gfycat/)) {
+        handleGfyCat($this);
+      }
+      else if (src.match(/gifv/)) {
+        handleImgur($this);
       }
       else if (src.match(/gif/)) {
         buildIMGwith($this);
+      }
+      else if (src.match(jpg|jpeg|png)) {
+        buildIMGWith($this);
       }
     });
   };
@@ -33,132 +42,180 @@
   var handleStreamableMedia = function ($element) {
     var uriArray = $element.data('src').split('/'),
         streamableId = uriArray[uriArray.length - 1],
-        src = '//streamable/res/' + streamableId;
+        src = '//streamable.com/res/' + streamableId;
 
     buildiFrame({
-      el: $element,
+      $element: $element,
+      width: '100%',
       src: src,
-      height: 450,
-      width: 600,
       scrolling: 'no'
     });
   };
 
-  var buildHTML5VideoWith = function ($element) {
-    var $video = $('<video>', {
+  var handleGfyCat = function ($element) {
+    var uriArray = $element.data('src').split('/'),
+        gfyCatDealie = uriArray[uriArray.length - 1],
+        src = '//gfycat.com/' + gfyCatDealie,
+        webmSrc = '//zippy.gfycat.com/' + gfyCatDealie + '.webm',
+        mp4Src = '//fat.gfycat.com/' + gfyCatDealie + '.mp4';
+
+    buildHTML5Video({
+      $element: $element,
+      wrapChildSources: true,
+      webmSrc: webmSrc,
+      mp4Src: mp4Src
+    });
+  };
+
+  var handleImgur = function ($element) {
+    var arr = $element.data('src').split('.');
+    arr.pop();
+    var src = arr.join('.'),
+        webmSrc = src + '.webm',
+        mp4Src = src + '.mp4';
+
+    buildHTML5Video({
+      $element: $element,
+      wrapChildSources: true,
+      webmSrc: webmSrc,
+      mp4Src: mp4Src
+    });
+
+  };
+
+  var handleVidFile = function ($element) {
+    buildHTML5Video({
+      $element: $element
+    });
+  };
+
+  var buildHTML5Video = function (opts) {
+    opts = opts || {};
+    var height = opts.height || 450,
+        width = opts.width || '100%',
+        $element = opts.$element || $('<div />'),
+        src = opts.src || $element.data('src'),
+        webmSrc = opts.webmSrc || (src + '.webm'),
+        mp4Src = opts.mp4Src || (src + '.mp4'),
+        wrapChildSources = opts.wrapChildSources || false,
+        $video = $('<video>', {
+          height: height,
+          width: width,
+          loop: '',
+          //autoplay: '',
+          controls: '',
+          muted: 'muted'
+        }),
+        $webmSource, $mp4Source;
+
+    if (wrapChildSources) {
+      $webmSource = $('<source>', {
+        id: 'webmsource',
+        src: webmSrc,
+        type: 'video/webm'
+      });
+      $mp4Source = $('<source>', {
+        id: 'mp4source',
+        src: mp4Src,
+        type: 'video/mp4'
+      });
+
+      $video.append($webmSource);
+      $video.append($mp4Source);
+    }
+    else {
+      $video.attr('src', src);
+    }
+
+    handleClick($element, $video);
+    return $element;
+  };
+
+  var buildIMGwith = function ($element) {
+    var $img = $('<img>', {
           src: $element.data('src'),
           height: 450,
           width: 600
         });
 
-    console.log("buildHTML5VideoWith");
-  };
-
-  var buildIMGwith = function ($element) {
-    var $img = $('<img>', {
-          src: $element.dat('src'),
-          height: 450,
-          width: 600
-        });
+    handleClick($element, $img);
   };
 
   var buildiFrame = function (opts) {
     opts = opts || {}
-    var src = opts.src,
-        height = opts.height || 450,
-        width = opts.width || 600,
+    var height = opts.height || 450,
+        width = opts.width || 710,
         scrolling = opts.scrolling || 'no',
         $element = opts.$element || $('<div />'),
+        src = opts.src || $element.data('src'),
         $iframe = $('<iframe>', {
           src: src,
           frameboarder: 0,
           height: height,
           width: width,
           scrolling: scrolling
-        });;
+        });
 
-    // think about moving this to separate method
-    $element.on('click', function (e) {
-      debugger;
-      e.preventDefault();
+    handleClick($element, $iframe);
 
-      if ($iframe.is(':visible')) {
-        $iframe.detach();
-      }
-      else {
-        $iframe.appendTo($element);
-      }
-    });
-
+    return $element;
   }
 
-
-  // deprecating this - currently not used
-  var buildiFrameWith = function ($element) {
-    var $iframe = $('<iframe>', {
-          src: $element.data('src'),
-          frameborder: 0,
-          height: 450,
-          width: 600,
-          scrolling: 'no'
-        });
-
-    $iframe.attr('allowfullscreen');
-
-    $element.on('click', function (e) {
+  var handleClick = function ($trigger, $ammo) {
+    $trigger.on('click', function (e) {
       e.preventDefault();
 
-      if ($iframe.is(':visible')) {
-        $iframe.detach();
+      if ($ammo.is(':visible')) {
+        $ammo.detach();
       }
       else {
-        $iframe.appendTo($element);
+        $ammo.appendTo($trigger);
       }
     });
+  }
+
+  // Arctic Scroll Source
+  var setArcticScroll = function () {
+    var $postContent = $(".post-content");
+    $postContent.fitVids();
+
+    $(".scroll-down").arctic_scroll();
+
+    $(".menu-button, .nav-cover, .nav-close").on("click", function(e){
+      e.preventDefault();
+      $("body").toggleClass("nav-opened nav-closed");
+    });
   };
+  // Arctic Scroll by Paul Adam Davis
+  // https://github.com/PaulAdamDavis/Arctic-Scroll
+  $.fn.arctic_scroll = function (options) {
 
-    // Arctic Scroll Source
-    var setArcticScroll = function () {
-        var $postContent = $(".post-content");
-        $postContent.fitVids();
-
-        $(".scroll-down").arctic_scroll();
-
-        $(".menu-button, .nav-cover, .nav-close").on("click", function(e){
-            e.preventDefault();
-            $("body").toggleClass("nav-opened nav-closed");
-        });
-    };
-    // Arctic Scroll by Paul Adam Davis
-    // https://github.com/PaulAdamDavis/Arctic-Scroll
-    $.fn.arctic_scroll = function (options) {
-
-        var defaults = {
-            elem: $(this),
-            speed: 500
-        },
+    var defaults = {
+      elem: $(this),
+      speed: 500
+    },
 
         allOptions = $.extend(defaults, options);
 
-        allOptions.elem.click(function (event) {
-            event.preventDefault();
-            var $this = $(this),
-                $htmlBody = $('html, body'),
-                offset = ($this.attr('data-offset')) ? $this.attr('data-offset') : false,
-                position = ($this.attr('data-position')) ? $this.attr('data-position') : false,
-                toMove;
+    allOptions.elem.click(function (event) {
+      event.preventDefault();
+      var $this = $(this),
+          $htmlBody = $('html, body'),
+          offset = ($this.attr('data-offset')) ? $this.attr('data-offset') : false,
+          position = ($this.attr('data-position')) ? $this.attr('data-position') : false,
+          toMove;
 
-            if (offset) {
-                toMove = parseInt(offset);
-                $htmlBody.stop(true, false).animate({scrollTop: ($(this.hash).offset().top + toMove) }, allOptions.speed);
-            } else if (position) {
-                toMove = parseInt(position);
-                $htmlBody.stop(true, false).animate({scrollTop: toMove }, allOptions.speed);
-            } else {
-                $htmlBody.stop(true, false).animate({scrollTop: ($(this.hash).offset().top) }, allOptions.speed);
-            }
-        });
+      if (offset) {
+        toMove = parseInt(offset);
+        $htmlBody.stop(true, false).animate({scrollTop: ($(this.hash).offset().top + toMove) }, allOptions.speed);
+      } else if (position) {
+        toMove = parseInt(position);
+        $htmlBody.stop(true, false).animate({scrollTop: toMove }, allOptions.speed);
+      } else {
+        $htmlBody.stop(true, false).animate({scrollTop: ($(this.hash).offset().top) }, allOptions.speed);
+      }
+    });
 
-    };
+  };
 
 })(jQuery);
