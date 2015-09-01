@@ -55,7 +55,7 @@ config = {
 
   // Development
   development: {
-    url: 'http://localhost:2368',
+    url: 'http://natty-football-league-124197.nitrousapp.com:3001/',
     database: {
       client: 'sqlite3',
       connection: {
@@ -64,8 +64,8 @@ config = {
       debug: false
     },
     server: {
-      host: '127.0.0.1',
-      port: '2368'
+      host: '0.0.0.0',
+      port: '3001'
     },
     paths: {
       contentPath: path.join(__dirname, '/content/')
