@@ -31,7 +31,7 @@
         handleImgur($this);
       }
       else if (src.match(/gif/)) {
-        buildIMGwith($this);
+        buildIMGWith($this);
       }
       else if (src.match(/jpg|jpeg|png/)) {
         buildIMGWith($this);
@@ -131,7 +131,7 @@
     return $element;
   };
 
-  var buildIMGwith = function ($element) {
+  var buildIMGWith = function ($element) {
     var $img = $('<img>', {
           src: $element.data('src'),
           height: 450,
