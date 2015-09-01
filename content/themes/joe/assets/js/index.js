@@ -33,7 +33,7 @@
       else if (src.match(/gif/)) {
         buildIMGwith($this);
       }
-      else if (src.match(jpg|jpeg|png)) {
+      else if (src.match(/jpg|jpeg|png/)) {
         buildIMGWith($this);
       }
     });
