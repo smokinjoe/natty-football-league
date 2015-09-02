@@ -56,13 +56,13 @@
     var uriArray = $element.data('src').split('/'),
         gfyCatDealie = uriArray[uriArray.length - 1],
         src = '//gfycat.com/' + gfyCatDealie,
-        webmSrc = '//zippy.gfycat.com/' + gfyCatDealie + '.webm',
-        mp4Src = '//fat.gfycat.com/' + gfyCatDealie + '.mp4';
+        webmSrc = '//giant.gfycat.com/' + gfyCatDealie + '.webm',
+        mp4Src = '//giant.gfycat.com/' + gfyCatDealie + '.mp4'
 
     buildHTML5Video({
       $element: $element,
       wrapChildSources: true,
-      webmSrc: webmSrc,
+      //webmSrc: webmSrc,
       mp4Src: mp4Src
     });
   };
@@ -95,8 +95,10 @@
         width = opts.width || '100%',
         $element = opts.$element || $('<div />'),
         src = opts.src || $element.data('src'),
-        webmSrc = opts.webmSrc || (src + '.webm'),
-        mp4Src = opts.mp4Src || (src + '.mp4'),
+        //webmSrc = opts.webmSrc || (src + '.webm'),
+        //mp4Src = opts.mp4Src || (src + '.mp4'),
+        webmSrc = opts.webmSrc || false,
+        mp4Src = opts.mp4Src || false,
         wrapChildSources = opts.wrapChildSources || false,
         $video = $('<video>', {
           height: height,
@@ -106,22 +108,27 @@
           controls: '',
           muted: 'muted'
         }),
+        webmID = opts.webmID || 'webmsource',
+        mp4ID = opts.mp4ID || 'mp4source',
         $webmSource, $mp4Source;
 
     if (wrapChildSources) {
-      $webmSource = $('<source>', {
-        id: 'webmsource',
-        src: webmSrc,
-        type: 'video/webm'
-      });
-      $mp4Source = $('<source>', {
-        id: 'mp4source',
-        src: mp4Src,
-        type: 'video/mp4'
-      });
-
-      $video.append($webmSource);
-      $video.append($mp4Source);
+      if (webmSrc) {
+        $webmSource = $('<source>', {
+          id: webmID,
+          src: webmSrc,
+          type: 'video/webm'
+        });
+        $video.append($webmSource);
+      }
+      if (mp4Src) {
+        $mp4Source = $('<source>', {
+          id: mp4ID,
+          src: mp4Src,
+          type: 'video/mp4'
+        });
+        $video.append($mp4Source);
+      }
     }
     else {
       $video.attr('src', src);
