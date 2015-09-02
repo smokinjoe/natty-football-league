@@ -6,6 +6,26 @@
 (function ($, undefined) {
     "use strict";
 
+  var Ajax = (function (opts) {
+    var opts = opts || {},
+        params = opts.params || {},
+        callback = opts.callback || new Function(),
+        errCb = opts.err || new Function(),
+        url = opts.url,
+        method = opts.method || 'GET',
+        methods = {};
+
+    methods.call = function (opts) {
+      $.ajax({
+        url: url,
+        type: method,
+        data: params
+      }).done(callback).fail(errCb);
+    };
+
+    return methods;
+  }());
+
   var $document = $(document);
 
   $document.ready(function () {
@@ -55,16 +75,23 @@
   var handleGfyCat = function ($element) {
     var uriArray = $element.data('src').split('/'),
         gfyCatDealie = uriArray[uriArray.length - 1],
-        src = '//gfycat.com/' + gfyCatDealie,
-        webmSrc = '//giant.gfycat.com/' + gfyCatDealie + '.webm',
-        mp4Src = '//giant.gfycat.com/' + gfyCatDealie + '.mp4'
+        webmSrc, mp4Src;
 
-    buildHTML5Video({
-      $element: $element,
-      wrapChildSources: true,
-      //webmSrc: webmSrc,
-      mp4Src: mp4Src
-    });
+    $.ajax({
+      url: 'http://gfycat.com/cajax/get/' + gfyCatDealie,
+      type: 'GET'
+    }).done(function (response) {
+      webmSrc = response.gfyItem.webmUrl;
+      mp4Src = response.gfyItem.mp4Url;
+      buildHTML5Video({
+        $element: $element,
+        wrapChildSources: true,
+        webmSrc: webmSrc,
+        mp4Src: mp4Src
+      });
+    }).fail(function () {
+      console.log("Error: Failure to retrieve response for gfycat: ", gfyCatDealie);
+    });;
   };
 
   var handleImgur = function ($element) {
@@ -141,8 +168,7 @@
   var buildIMGWith = function ($element) {
     var $img = $('<img>', {
           src: $element.data('src'),
-          height: 450,
-          width: 600
+          width: "100%"
         });
 
     handleClick($element, $img);
