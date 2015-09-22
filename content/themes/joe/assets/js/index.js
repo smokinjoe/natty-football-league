@@ -242,7 +242,7 @@
     buildIMGWith (opts) {
       let $element = opts.$element,
           $img = $('<img>', {
-            src: $element.data('src'),
+            src: opts.src,
             width: "100%"
           });
 
