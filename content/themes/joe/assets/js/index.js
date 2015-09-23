@@ -9,6 +9,7 @@
   const TRIGGER_CLICK = 'click',
       TRIGGER_HOVER = 'hover',
       TRIGGER_AUTO = 'auto',
+      TRIGGER_ONSCREEN = 'onscreen',
       TRIGGER_DEFAULT = TRIGGER_CLICK;
 
   class Ajax {
@@ -83,11 +84,19 @@
       this.config = options;
       this.$element = options.$element;
       this.$mediaContainer = $('<div />');
+      this.generated = false;
+
+      // clean out the config
+      if (this.config.body) {
+        $element.text(this.config.body);
+      }
     };
 
     generate () {
-      // how is this flow going to work?
-      // I guess have the click execute the generate?
+
+      // if (this.generated) {
+      //   return;
+      // }
 
       let config = this.config;
 
@@ -113,24 +122,28 @@
         this.handleYouTube(config);
       }
       else {
-        console.log("JOE: Link doesn't have fun media.", this.$element);
+        console.log("JOE: Link doesn't have fun media.");
       }
+    }
+
+    destroy () {
+      this.$mediaContainer.empty();
     }
 
     arm () {
       let trigger = this.config.trigger;
       switch (trigger) {
         case TRIGGER_CLICK:
-          this.generate();
-          this.handleClick(this.config.$element, this.config.$mediaContainer);
+          this.handleClick();
         break;
         case TRIGGER_HOVER:
-          this.generate();
-          this.handleClick(this.config.$element, this.config.$mediaContainer);
+          this.handleHover();
+        break;
+        case TRIGGER_ONSCREEN:
+          this.showMedia();
         break;
         case TRIGGER_AUTO:
-          this.generate();
-          this.handleClick(this.config.$element, this.config.$mediaContainer);
+          this.showMedia();
         break;
       }
     }
@@ -190,7 +203,7 @@
     };
 
     handleImgur (opts) {
-      let $element = this.config.$element,
+      let $element = this.$element,
           arr = $element.data('src').split('.');
       arr.pop();
       let src = arr.join('.'),
@@ -257,8 +270,7 @@
         $video.attr('src', src);
       }
 
-      this.finishItUp($element, $video);
-      return $element;
+      this.finishItUp($video);
     };
 
     buildIMGWith (opts) {
@@ -268,7 +280,7 @@
             width: "100%"
           });
 
-      this.finishItUp($element, $img);
+      this.finishItUp($img);
     };
 
     buildiFrame (opts) {
@@ -287,49 +299,58 @@
             allowfullscreen: ''
           });
 
-      this.finishItUp($element, $iframe);
-
-      return $element;
+      this.finishItUp($iframe);
     };
 
-    finishItUp ($element, $mediaElement) {
-      if (this.config.body) {
-        $element.text(this.config.body);
-      }
-
+    finishItUp ($mediaElement) {
       this.$mediaContainer.append($mediaElement);
+      this.generated = true;
     };
 
     // event handlers
-    handleClick ($trigger, $ammo) {
+    handleClick () {
+      var $trigger = this.$element,
+          $payload = this.$mediaContainer;
+
       $trigger.on('click', e => {
         e.preventDefault();
 
-        if ($ammo.is(':visible')) {
-          $ammo.detach();
+        if ($payload.is(':visible')) {
+          this.destroy();
+          $payload.detach();
         }
         else {
-          $ammo.appendTo($trigger);
+          this.generate();
+          $payload.appendTo($trigger);
         }
       });
     };
 
-    handleHover ($trigger, $ammo) {
+    handleHover () {
+      var $trigger = this.$element,
+          $payload = this.$mediaContainer;
+
       $trigger.on('click', e => e.preventDefault());
       $trigger.on('mouseenter', e => {
-        if (!$ammo.is(':visible')) {
-          $ammo.appendTo($trigger);
+        if (!$payload.is(':visible')) {
+          this.generate()
+          $payload.appendTo($trigger);
         }
       });
       $trigger.on('mouseleave', e => {
-        if ($ammo.is(':visible')) {
-          $ammo.detach();
+        if ($payload.is(':visible')) {
+          this.destroy();
+          $payload.detach();
         }
       });
     };
 
-    showMedia ($trigger, $ammo) {
-      $ammo.appendTo($trigger);
+    showMedia () {
+      var $trigger = this.$element,
+          $payload = this.$mediaContainer;
+
+      this.generate();
+      $payload.appendTo($trigger);
     };
 
   };
@@ -358,6 +379,7 @@
           dealie = new J($this, {});
 
       dealie.arm();
+      //dealie.arm();
       dealieArray.push(dealie);
     });
   };
